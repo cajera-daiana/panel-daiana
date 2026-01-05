@@ -26,10 +26,10 @@
   </noscript>
 
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
+    *{margin:0;padding:0;box-sizing:border-box}
 
     body{
-      height:100vh;
+      min-height:100vh;
       background:radial-gradient(circle at 20% 20%, #2a004d, #000000 90%);
       overflow:hidden;
       display:flex;
@@ -41,28 +41,34 @@
       text-align:center;
       position:relative;
       animation:bgMove 10s ease-in-out infinite alternate;
+      padding:12px;
     }
 
     @keyframes bgMove{
-      0%{ background-position:0 0; background-color:#2a004d }
-      100%{ background-position:100% 100%; background-color:#4b0099 }
+      0%{background-position:0 0}
+      100%{background-position:100% 100%}
     }
 
     .particle{
       position:absolute;
       background:rgba(177,124,255,.5);
       border-radius:50%;
-      width:2px; height:2px;
+      width:2px;height:2px;
       animation:float linear infinite, shimmer 4s ease-in-out infinite;
       box-shadow:0 0 6px rgba(177,124,255,.8);
     }
 
-    @keyframes float{ from{transform:translateX(0);opacity:.25} to{transform:translateX(100vw);opacity:.9} }
-    @keyframes shimmer{ 0%,100%{opacity:.2} 50%{opacity:.9} }
+    @keyframes float{
+      from{transform:translateX(0);opacity:.25}
+      to{transform:translateX(100vw);opacity:.9}
+    }
+    @keyframes shimmer{
+      0%,100%{opacity:.2}
+      50%{opacity:.9}
+    }
 
     .card-wrapper{
       z-index:2;
-      padding:20px;
       width:100%;
       display:flex;
       justify-content:center;
@@ -70,14 +76,12 @@
 
     .card{
       position:relative;
-      max-width:380px;
-      width:100%;
-      padding:22px 20px 20px;
+      width:min(92vw,420px);
+      padding:18px 16px 16px;
       border-radius:20px;
-      background:rgba(9, 9, 22, 0.82);
+      background:rgba(9,9,22,.82);
       box-shadow:0 0 32px rgba(0,0,0,.7);
       backdrop-filter:blur(16px);
-      -webkit-backdrop-filter:blur(16px);
       overflow:hidden;
     }
 
@@ -88,13 +92,10 @@
       border-radius:20px;
       padding:1px;
       background:linear-gradient(135deg, rgba(177,124,255,.9), rgba(56,189,248,.7));
-      -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
       -webkit-mask-composite:xor;
       mask-composite:exclude;
       opacity:.7;
-      z-index:1;
       pointer-events:none;
     }
 
@@ -109,20 +110,19 @@
     .badge-row{
       width:100%;
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      margin-bottom:10px;
+      margin-bottom:8px;
     }
 
     .brand{
-      font-size:0.72rem;
-      letter-spacing:0.22em;
+      font-size:.7rem;
+      letter-spacing:.22em;
       text-transform:uppercase;
       opacity:.75;
     }
 
     .pill{
-      font-size:0.7rem;
+      font-size:.7rem;
       padding:4px 10px;
       border-radius:999px;
       background:rgba(34,197,94,.12);
@@ -135,60 +135,61 @@
     }
 
     .pill-dot{
-      width:7px; height:7px;
+      width:7px;height:7px;
       border-radius:50%;
       background:#22c55e;
       box-shadow:0 0 8px rgba(34,197,94,1);
     }
 
     .slot-img{
-      max-width:360px;
-      width:78vw;
-      margin:4px 0 22px;
-      display:block;
-      border-radius:28px;
+      width:min(78vw,300px);
+      margin:8px 0 16px;
+      border-radius:24px;
     }
 
     h1{
-      font-size:1.46rem !important;
+      font-size:1.25rem;
       font-weight:700;
-      margin-bottom:70px;
+      margin-bottom:12px;
+      line-height:1.25;
       text-shadow:0 0 10px rgba(255,200,60,.9);
-      line-height:1.2;
     }
 
     .h1-line-small{
       display:block;
-      font-size:1.45rem;
-      font-weight:600;
-      opacity:.96;
-      margin-top:20px;
+      font-size:1.2rem;
+      margin-top:10px;
     }
 
     .subtitle{
-      font-size:0.78rem;
-      opacity:.96;
-      margin-bottom:18px;
-      font-weight:500;
-      white-space:nowrap;
-      transform: translateY(-2px);
+      font-size:.78rem;
+      margin-bottom:16px;
+      opacity:.95;
+      white-space:normal;
     }
 
     .cta-btn{
       border:none;
       cursor:pointer;
-      padding:15px 26px;
+      width:100%;
+      padding:14px 18px;
       border-radius:50px;
-      font-size:0.95rem;
+      font-size:.95rem;
       font-weight:700;
       display:flex;
-      gap:10px;
       align-items:center;
+      justify-content:center;
+      gap:10px;
       background:linear-gradient(135deg,#3aff97,#17c45b);
-      color:#ffffff !important;
+      color:#fff;
       box-shadow:0 0 22px rgba(34,197,94,.9);
       animation:pulse 1.4s infinite ease-in-out;
-      letter-spacing:0.04em;
+    }
+
+    .cta-btn svg{
+      width:20px;
+      height:20px;
+      fill:white;
     }
 
     @keyframes pulse{
@@ -198,19 +199,22 @@
     }
 
     .helper{
-      font-size:.78rem;
-      opacity:.72;
-      margin-top:30px;
+      font-size:.75rem;
+      opacity:.7;
+      margin-top:18px;
     }
 
     .footnote{
-      font-size:0.72rem;
-      opacity:0.48;
+      font-size:.68rem;
+      opacity:.45;
+      margin-top:22px;
+      white-space:normal;
       text-align:center;
-      width:100%;
-      margin-top:50px;
-      letter-spacing:0.04em;
-      white-space:nowrap;
+    }
+
+    @media(min-width:900px){
+      h1{font-size:1.5rem}
+      .h1-line-small{font-size:1.45rem}
     }
   </style>
 </head>
@@ -223,17 +227,14 @@
 
         <div class="badge-row">
           <span class="brand">CASINO ONLINE</span>
-          <span class="pill">
-            <span class="pill-dot"></span>
-            Acceso oficial
-          </span>
+          <span class="pill"><span class="pill-dot"></span>Acceso oficial</span>
         </div>
 
-        <img src="/logo-home.png" class="slot-img" alt="Logo principal">
+        <img src="/logo-home.png" class="slot-img" alt="Logo">
 
         <h1>
           DIVERTITE, GIRA Y GANA
-          <span class="h1-line-small">💰¡BONO DE BIENVENIDA!💰</span>
+          <span class="h1-line-small">💰 ¡BONO DE BIENVENIDA! 💰</span>
         </h1>
 
         <p class="subtitle">
@@ -241,6 +242,11 @@
         </p>
 
         <button class="cta-btn" id="cta-btn">
+          <!-- WhatsApp icon -->
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M19.11 17.44c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.14-.42-2.17-1.34-.8-.71-1.34-1.6-1.5-1.87-.16-.27-.02-.42.12-.56.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.48-.84-2.03-.22-.54-.45-.47-.61-.48h-.52c-.18 0-.48.07-.73.34-.25.27-.95.93-.95 2.27s.98 2.64 1.12 2.82c.14.18 1.93 2.95 4.68 4.13.65.28 1.16.45 1.56.57.65.21 1.24.18 1.71.11.52-.08 1.6-.65 1.82-1.28.23-.63.23-1.17.16-1.28-.07-.11-.25-.18-.52-.32z"/>
+            <path d="M16 3C9.38 3 4 8.38 4 15c0 2.65.86 5.1 2.32 7.1L4 29l7.13-2.28A11.94 11.94 0 0 0 16 27c6.62 0 12-5.38 12-12S22.62 3 16 3zm0 21.82c-2.07 0-3.98-.6-5.6-1.64l-.4-.25-4.23 1.35 1.38-4.12-.26-.42A9.8 9.8 0 1 1 16 24.82z"/>
+          </svg>
           CREAR USUARIO
         </button>
 
@@ -259,36 +265,31 @@
   <script>
   document.addEventListener("DOMContentLoaded", () => {
 
-    // Partículas
-    for (let i = 0; i < 70; i++){
-      const p = document.createElement("div");
-      p.classList.add("particle");
-      p.style.top = Math.random() * 100 + "vh";
-      p.style.left = Math.random() * 100 + "vw";
-      p.style.animationDuration = (6 + Math.random() * 8) + "s";
+    for(let i=0;i<70;i++){
+      const p=document.createElement("div");
+      p.className="particle";
+      p.style.top=Math.random()*100+"vh";
+      p.style.left=Math.random()*100+"vw";
+      p.style.animationDuration=(6+Math.random()*8)+"s";
       document.body.appendChild(p);
     }
 
-    let redirected = false;
-
+    let redirected=false;
     function goToWhatsapp(){
-      if (redirected) return;
-      redirected = true;
+      if(redirected) return;
+      redirected=true;
 
-      if (window.fbq) {
-        fbq('track', 'Contact');
-        fbq('trackCustom', 'WAclick');
+      if(window.fbq){
+        fbq('track','Contact');
+        fbq('trackCustom','WAclick');
       }
 
-      setTimeout(() => {
-        window.location.href = "/api/r";
-      }, 300);
+      setTimeout(()=>{ window.location.href="/api/r"; },300);
     }
 
-    document.addEventListener("click", e => {
-      if (e.target.closest("#cta-btn")) goToWhatsapp();
+    document.addEventListener("click",e=>{
+      if(e.target.closest("#cta-btn")) goToWhatsapp();
     });
-
   });
   </script>
 
