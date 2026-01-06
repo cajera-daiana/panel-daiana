@@ -1,29 +1,35 @@
-// /api/admin.js
-const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+import { Redis } from "@upstash/redis";
 
-async function redis(cmd, ...args) {
-  const url = `${UPSTASH_REDIS_REST_URL}/${cmd}/${args.map(encodeURIComponent).join("/")}`;
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` } });
-  const data = await r.json();
-  return data.result;
-}
+const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
   try {
-    const walink = await redis("get", "cfg:walink");
-    const messagesJson = await redis("get", "cfg:messages");
-    const rrIndex = await redis("get", "cfg:rr_index");
+    const { token, get } = req.query;
 
-    let messages = [];
-    try { messages = messagesJson ? JSON.parse(messagesJson) : []; } catch { messages = []; }
+    if (token !== "daiana-2026") {
+      return res.status(401).json({ ok: false, error: "Token inválido" });
+    }
 
-    res.status(200).json({
-      walink: walink || "",
-      rrIndex: Number(rrIndex || 0),
-      messages,
-    });
-  } catch (e) {
-    res.status(500).json({ error: e?.message || "unknown" });
+    // solo soportamos GET de config
+    if (req.method !== "GET" || get !== "1") {
+      return res.status(400).json({ ok: false, error: "Parámetros inválidos" });
+    }
+
+    const cfg = (await redis.get("cfg")) || {
+      walink: "",
+      rrIndex: 0,
+      messages: [],
+      updatedAt: null,
+    };
+
+    // normalizamos por si guardaste algo raro antes
+    const walink = typeof cfg.walink === "string" ? cfg.walink : "";
+    const rrIndex = Number.isInteger(cfg.rrIndex) ? cfg.rrIndex : 0;
+    const messages = Array.isArray(cfg.messages) ? cfg.messages : [];
+
+    return res.json({ ok: true, walink, rrIndex, messages });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ ok: false, error: "Error interno" });
   }
 }
