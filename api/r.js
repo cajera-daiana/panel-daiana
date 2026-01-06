@@ -11,41 +11,71 @@ async function redis(cmd, ...args) {
   return data.result;
 }
 
+function safeJsonParse(str) {
+  try { return JSON.parse(str); } catch { return null; }
+}
+
 function normalizeWaLink(walink) {
-  // Acepta wa.me o api.whatsapp.com, etc. y devuelve URL lista para agregar ?text=
-  try {
-    // si ya es https://wa.me/...
-    if (walink.includes("wa.me")) return walink;
-    // si es numero pelado
-    if (/^\+?\d+$/.test(walink)) return `https://wa.me/${walink.replace("+", "")}`;
-    return walink; // si ya lo manejás como link final
-  } catch {
-    return walink;
+  let w = String(walink || "").trim();
+  if (!w) return "";
+
+  // Si viene con texto predefinido, lo sacamos (porque /api/r agrega su propio text)
+  // Ej: https://wa.me/549.. ?text=...
+  w = w.split("?")[0].trim();
+
+  // Si es número pelado
+  if (/^\+?\d+$/.test(w)) return `https://wa.me/${w.replace("+", "")}`;
+
+  // Si viene sin protocolo (raro), se lo ponemos
+  if (w.startsWith("wa.me/")) return `https://${w}`;
+
+  return w;
+}
+
+async function getCfgFromRedis() {
+  // ✅ Nuevo formato: todo junto en una key "cfg"
+  const cfgJson = await redis("get", "cfg");
+  const cfgParsed = cfgJson ? safeJsonParse(cfgJson) : null;
+
+  if (cfgParsed) {
+    // por si alguna vez guardaste {cfg:{...}}
+    const cfg = cfgParsed.cfg || cfgParsed;
+    return {
+      walink: cfg.walink || "",
+      messages: Array.isArray(cfg.messages) ? cfg.messages : [],
+    };
   }
+
+  // ✅ Fallback a formato viejo: keys separadas
+  const walinkRaw = await redis("get", "cfg:walink");
+  const messagesJson = await redis("get", "cfg:messages");
+  const messagesParsed = messagesJson ? safeJsonParse(messagesJson) : [];
+
+  return {
+    walink: walinkRaw || "",
+    messages: Array.isArray(messagesParsed) ? messagesParsed : [],
+  };
 }
 
 export default async function handler(req, res) {
   try {
-    const walinkRaw = await redis("get", "cfg:walink");
-    const walink = normalizeWaLink(walinkRaw || "");
+    const cfg = await getCfgFromRedis();
 
+    const walink = normalizeWaLink(cfg.walink);
     if (!walink) {
       res.status(400).send("Falta configurar WALINK en el panel");
       return;
     }
 
-    const messagesJson = await redis("get", "cfg:messages");
-    let messages = [];
-    try {
-      messages = messagesJson ? JSON.parse(messagesJson) : [];
-    } catch {
-      messages = [];
-    }
+    const messages = Array.isArray(cfg.messages) ? cfg.messages : [];
+    const active = messages.filter(
+      (m) => m && m.active && String(m.text || "").trim().length > 0
+    );
 
-    const active = messages.filter(m => m && m.active && String(m.text || "").trim().length > 0);
+    const fallbackText =
+      "Hola! Te hablo por tu solicitud. Decime tu nombre/apodo y te registro 🙌";
 
-    // Si no hay mensajes activos, cae en un texto default (opcional)
-    const fallbackText = "Hola! Te hablo por tu solicitud. Decime tu nombre/apodo y te registro 🙌";
+    // Si no hay mensajes activos, igual manda uno default
     if (active.length === 0) {
       const url = `${walink}?text=${encodeURIComponent(fallbackText)}`;
       res.writeHead(302, { Location: url });
@@ -53,13 +83,12 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Round robin atómico
-    const n = await redis("incr", "cfg:rr_index"); // devuelve 1,2,3...
+    // Round robin atómico (contador separado)
+    const n = await redis("incr", "cfg:rr_index"); // 1,2,3...
     const idx = (Number(n) - 1) % active.length;
     const chosen = active[idx];
 
     const url = `${walink}?text=${encodeURIComponent(chosen.text)}`;
-
     res.writeHead(302, { Location: url });
     res.end();
   } catch (e) {
