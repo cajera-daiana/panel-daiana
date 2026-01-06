@@ -51,9 +51,6 @@
     --card:#1c1433f0; --edge1:rgba(174,143,255,.16); --edge2:rgba(255,255,255,.55);
     --text:#ffffff; --muted:#c9c0f2; --btn-bg:#1e1935;
     --neonA:#b985ff; --neonB:#efe6ff;
-
-    --listColW:108px;
-    --saveBtnW:160px;
   }
 
   html,body{
@@ -148,7 +145,6 @@
 
   #list{margin-top:16px;}
 
-  /* Mensajes: card */
   .msg-card{
     border:1px solid rgba(180,140,255,.22);
     background:rgba(18,8,40,.45);
@@ -274,6 +270,9 @@
 </div>
 
 <script>
+/* ✅ TOKEN FIJO (Daiana) */
+const TOKEN = "daiana-2026";
+
 /* Fondo */
 const c=document.getElementById("bg"),x=c.getContext("2d");
 let P=[];
@@ -292,8 +291,8 @@ for(let i=0;i<90;i++)P.push({x:Math.random()*c.width,y:Math.random()*c.height,vx
 const $=s=>document.querySelector(s);
 
 /* 🔐 LOGIN SIMPLE (frontal) CON EXPIRACIÓN POR INACTIVIDAD */
-const LOGIN_USER = "Kalyx";   // <- cambiá si querés
-const LOGIN_PASS = "12345";   // <- cambiá si querés
+const LOGIN_USER = "Kalyx";
+const LOGIN_PASS = "12345";
 const SESSION_MINUTES = 10;
 
 const loginScreen = $("#loginScreen");
@@ -322,7 +321,7 @@ function doLogin(){
     markActivity();
     loginScreen.style.display="none";
     loginError.textContent="";
-    loadAll(); // auto-carga
+    loadAll();
   } else {
     loginError.textContent="Usuario o contraseña incorrectos";
   }
@@ -396,7 +395,6 @@ function makeMessageCard(m={id:null,title:"",text:"",active:true}){
   hint.textContent="Tip: podés usar placeholders tipo {NOMBRE} / {APODO} si querés.";
   actions.append(hint);
 
-  // cualquier cambio habilita guardar
   [title, chk, ta].forEach(el=>{
     el.addEventListener("input", ()=>{ saveWrap.style.display="flex"; });
     el.addEventListener("change", ()=>{ saveWrap.style.display="flex"; });
@@ -413,10 +411,7 @@ function getMessagesFromUI(){
     const title = card.querySelector("input.title")?.value.trim() || "";
     const text  = card.querySelector("textarea")?.value.trim() || "";
     const active= !!card.querySelector('input[type="checkbox"]')?.checked;
-
-    // si está vacío del todo, lo ignoramos
     if (!text) return null;
-
     return { id, title, text, active };
   }).filter(Boolean);
 }
@@ -424,13 +419,15 @@ function getMessagesFromUI(){
 async function loadAll(){
   try{
     show("Cargando...");
-    const r=await fetch(`/api/admin.js`);
+    const r=await fetch(`/api/admin?token=${encodeURIComponent(TOKEN)}&get=1`);
     const j=await r.json();
 
-    walinkInput.value = j.walink || "";
+    const cfg = j.cfg || j;
+
+    walinkInput.value = cfg.walink || cfg.walinkMain || "";
     list.innerHTML="";
 
-    const msgs = Array.isArray(j.messages) ? j.messages : [];
+    const msgs = Array.isArray(cfg.messages) ? cfg.messages : [];
     if (msgs.length===0){
       list.append(makeMessageCard());
     } else {
@@ -456,8 +453,7 @@ $("#btnAdd").onclick=()=>{
 $("#btnReset").onclick=async()=>{
   try{
     show("Borrando...");
-    // vaciamos mensajes
-    const r=await fetch(`/api/admin-post.js`,{
+    const r=await fetch(`/api/admin-post?token=${encodeURIComponent(TOKEN)}`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({ action:"set_all", walink: walinkInput.value.trim(), messages: [] })
@@ -477,7 +473,7 @@ $("#btnReset").onclick=async()=>{
 
 $("#btnRot").onclick=async()=>{
   try{
-    const r=await fetch(`/api/rotate-reset.js`);
+    const r=await fetch(`/api/rotate-reset?token=${encodeURIComponent(TOKEN)}`);
     const j=await r.json();
     show(j.ok ? "Rotación reiniciada ✅" : "Error al reiniciar", !!j.ok);
   }catch(e){
@@ -495,7 +491,7 @@ $("#btnSaveFinal").onclick=async()=>{
 
   try{
     show("Guardando...");
-    const r=await fetch(`/api/admin-post.js`,{
+    const r=await fetch(`/api/admin-post?token=${encodeURIComponent(TOKEN)}`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({ action:"set_all", walink, messages })
@@ -505,8 +501,6 @@ $("#btnSaveFinal").onclick=async()=>{
 
     saveWrap.style.display="none";
     show("Guardado ✅");
-
-    // recargar para que queden IDs seteados si eran nuevos
     await loadAll();
   }catch(e){
     console.error(e);
