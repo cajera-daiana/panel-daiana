@@ -142,15 +142,15 @@
     box-shadow:none;
   }
 
-  /* ===== Botón gestionar mensajes (afuera) ===== */
-  .outside-actions{
-    margin:10px auto 0;
-    max-width:760px;
-    padding:0 14px;
-  }
-  .outside-actions .btn{
-    width:100%;
-  }
+  /* ===== Botón gestionar mensajes (afuera, mismo ancho que la card) ===== */
+.outside-actions{
+  margin:10px 0 0;   /* sin centrar, usa el ancho real */
+  padding:0;         /* mismo padding que la card */
+}
+
+.outside-actions .btn{
+  width:100%;
+}
 
   /* ===== SECCIÓN MENSAJES (tarjeta desplegable) ===== */
   #messagesCard{
