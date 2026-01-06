@@ -328,8 +328,8 @@ for(let i=0;i<90;i++)P.push({x:Math.random()*c.width,y:Math.random()*c.height,vx
 })();
 
 /* 🔐 LOGIN SIMPLE */
-const LOGIN_USER = "Kalyx";
-const LOGIN_PASS = "12345";
+const LOGIN_USER = "Daiana";
+const LOGIN_PASS = "Pulze2026";
 const SESSION_MINUTES = 10;
 
 const loginScreen = $("#loginScreen");
@@ -417,7 +417,7 @@ async function fetchJson(url, options){
 btnToggleMessages.onclick = (e)=>{
   e.preventDefault();
   const open = messagesCard.classList.toggle("show");
-  btnToggleMessages.textContent = open ? "OCULTAR MENSAJES" : "GESTIONAR MENSAJES";
+  btnToggleMessages.textContent = open ? "OCULTAR MENSAJES" : "💬 GESTIONAR MENSAJES";
   if (open) {
     // baja hasta la tarjeta de mensajes (suave)
     setTimeout(()=>messagesCard.scrollIntoView({behavior:"smooth", block:"start"}), 50);
