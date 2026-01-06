@@ -15,7 +15,7 @@ html,body{
 }
 .shell{max-width:760px;margin:40px auto;padding:0 14px}
 .card{
-  background:rgba(20,10,40,.9);
+  background:rgba(20,10,40,.92);
   border-radius:20px;
   padding:18px;
   box-shadow:0 20px 60px rgba(0,0,0,.6);
@@ -149,6 +149,7 @@ async function loadAll(){
     btnSave.style.display="none";
     show("Listo ✅");
   }catch(e){
+    console.error(e);
     show("Error al cargar",false);
   }
 }
