@@ -248,7 +248,6 @@
         <button class="btn btn--thin btn--sm" id="btnReset">Borrar mensajes</button>
       </div>
 
-      <!-- WALINK -->
       <div class="field">
         <label>📲 WALINK principal</label>
         <input id="walink" type="text" placeholder="https://wa.me/549XXXXXXXXXX">
@@ -273,6 +272,11 @@
 /* ✅ TOKEN FIJO (Daiana) */
 const TOKEN = "daiana-2026";
 
+/* ✅ Endpoints con .js (porque /api/admin SIN .js te daba 404) */
+const API_ADMIN = `/api/admin.js?token=${encodeURIComponent(TOKEN)}`;
+const API_POST  = `/api/admin-post.js?token=${encodeURIComponent(TOKEN)}`;
+const API_ROT   = `/api/rotate-reset.js?token=${encodeURIComponent(TOKEN)}`;
+
 /* Fondo */
 const c=document.getElementById("bg"),x=c.getContext("2d");
 let P=[];
@@ -290,7 +294,7 @@ for(let i=0;i<90;i++)P.push({x:Math.random()*c.width,y:Math.random()*c.height,vx
 
 const $=s=>document.querySelector(s);
 
-/* 🔐 LOGIN SIMPLE (frontal) CON EXPIRACIÓN POR INACTIVIDAD */
+/* 🔐 LOGIN SIMPLE */
 const LOGIN_USER = "Kalyx";
 const LOGIN_PASS = "12345";
 const SESSION_MINUTES = 10;
@@ -351,6 +355,19 @@ const walinkInput=$("#walink");
 function show(t,ok=1){
   msg.textContent=t;
   msg.style.color = ok ? "#cfe9ff" : "#ffb2b2";
+}
+
+/* Helper: fetch con debug */
+async function fetchJson(url, options){
+  const r = await fetch(url, options);
+  const text = await r.text();
+  let j = null;
+  try { j = JSON.parse(text); } catch {}
+  if (!r.ok) {
+    const extra = j ? JSON.stringify(j) : text;
+    throw new Error(`HTTP ${r.status} en ${url} :: ${extra}`);
+  }
+  return j ?? {};
 }
 
 function makeMessageCard(m={id:null,title:"",text:"",active:true}){
@@ -419,12 +436,12 @@ function getMessagesFromUI(){
 async function loadAll(){
   try{
     show("Cargando...");
-    const r=await fetch(`/api/admin?token=${encodeURIComponent(TOKEN)}&get=1`);
-    const j=await r.json();
+    const j = await fetchJson(API_ADMIN);
 
+    // soporta ambos formatos (por si tu api devuelve {cfg:{...}})
     const cfg = j.cfg || j;
 
-    walinkInput.value = cfg.walink || cfg.walinkMain || "";
+    walinkInput.value = cfg.walink || "";
     list.innerHTML="";
 
     const msgs = Array.isArray(cfg.messages) ? cfg.messages : [];
@@ -438,7 +455,7 @@ async function loadAll(){
     show("Listo ✅");
   }catch(e){
     console.error(e);
-    show("Error al cargar",0);
+    show(`Error al cargar: ${e.message}`,0);
   }
 }
 
@@ -453,13 +470,12 @@ $("#btnAdd").onclick=()=>{
 $("#btnReset").onclick=async()=>{
   try{
     show("Borrando...");
-    const r=await fetch(`/api/admin-post?token=${encodeURIComponent(TOKEN)}`,{
+    const j = await fetchJson(API_POST,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({ action:"set_all", walink: walinkInput.value.trim(), messages: [] })
     });
-    const j=await r.json();
-    if(!j.ok) return show("Error al borrar",0);
+    if(!j.ok) return show(`Error al borrar: ${JSON.stringify(j)}`,0);
 
     list.innerHTML="";
     list.append(makeMessageCard());
@@ -467,18 +483,17 @@ $("#btnReset").onclick=async()=>{
     show("Mensajes borrados ✅");
   }catch(e){
     console.error(e);
-    show("Error",0);
+    show(`Error: ${e.message}`,0);
   }
 };
 
 $("#btnRot").onclick=async()=>{
   try{
-    const r=await fetch(`/api/rotate-reset?token=${encodeURIComponent(TOKEN)}`);
-    const j=await r.json();
-    show(j.ok ? "Rotación reiniciada ✅" : "Error al reiniciar", !!j.ok);
+    const j = await fetchJson(API_ROT);
+    show(j.ok ? "Rotación reiniciada ✅" : `Error al reiniciar: ${JSON.stringify(j)}`, !!j.ok);
   }catch(e){
     console.error(e);
-    show("Error",0);
+    show(`Error: ${e.message}`,0);
   }
 };
 
@@ -491,22 +506,23 @@ $("#btnSaveFinal").onclick=async()=>{
 
   try{
     show("Guardando...");
-    const r=await fetch(`/api/admin-post?token=${encodeURIComponent(TOKEN)}`,{
+    const j = await fetchJson(API_POST,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({ action:"set_all", walink, messages })
     });
-    const j=await r.json();
-    if(!j.ok) return show("Error al guardar",0);
+
+    if(!j.ok) return show(`Error al guardar: ${JSON.stringify(j)}`,0);
 
     saveWrap.style.display="none";
     show("Guardado ✅");
     await loadAll();
   }catch(e){
     console.error(e);
-    show("Error al guardar",0);
+    show(`Error al guardar: ${e.message}`,0);
   }
 };
+
 </script>
 </body>
 </html>
