@@ -51,6 +51,8 @@
     --card:#1c1433f0; --edge1:rgba(174,143,255,.16); --edge2:rgba(255,255,255,.55);
     --text:#ffffff; --muted:#c9c0f2; --btn-bg:#1e1935;
     --neonA:#b985ff; --neonB:#efe6ff;
+    --ok:#cfe9ff;
+    --bad:#ffb2b2;
   }
 
   html,body{
@@ -72,7 +74,7 @@
     box-shadow:0 12px 40px rgba(0,0,0,.45);
   }
   .card-inner{padding:16px 14px}
-  h1{text-align:center;margin:2px 0 12px;font-size:24px;letter-spacing:.4px}
+  h1{text-align:center;margin:2px 0 8px;font-size:24px;letter-spacing:.4px}
   p,small{color:var(--muted);text-align:center;margin:0}
 
   .btn{
@@ -82,6 +84,7 @@
     box-shadow:0 6px 18px rgba(40,0,120,.22);z-index:0;
     display:flex;align-items:center;justify-content:center;
     height:36px;font-size:12.5px;
+    user-select:none;
   }
   .btn:hover{filter:brightness(1.08)}
   .btn > *{position:relative;z-index:2}
@@ -95,44 +98,64 @@
   }
   .btn--sm{ height:34px; padding:8px 10px; font-size:12px; }
 
-  .actions-top{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-    margin:8px 0 10px;
-  }
-
-  .actions-bottom{display:flex;justify-content:center;margin:16px 0 6px;position:relative;}
   .btn--main{
     position:relative;
-    font-size:15px; padding:12px 16px; min-width:240px;
+    font-size:14px;
+    padding:12px 16px;
+    width:100%;
     background:#231a44;
     box-shadow:0 10px 28px rgba(127,92,255,.35), 0 0 22px rgba(127,92,255,.22);
     height:44px;
+    border-radius:14px;
   }
   .btn--main::before{
-    content:""; position:absolute; inset:-2px; border-radius:14px; z-index:1;
+    content:""; position:absolute; inset:-2px; border-radius:16px; z-index:1;
     background:conic-gradient(from 30deg, var(--neonA) 0%, var(--neonB) 14%, var(--neonA) 28%, var(--neonA) 100%);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite:xor; mask-composite:exclude;
     padding:2px; filter:saturate(120%) blur(.35px) opacity(.95);
   }
 
-  .field{
-    margin:10px 0 6px;
-    display:flex;
+  .actions-top{
+    display:grid;
+    grid-template-columns:1fr; /* solo recargar */
     gap:8px;
-    flex-wrap:wrap;
-    align-items:center;
+    margin:8px 0 10px;
   }
-  .field label{
-    min-width:120px;
-    color:#d7ccff;
-    font-size:13px;
+
+  .field{
+    margin:12px 0 8px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:flex-start;
+  }
+
+  /* Label PRO */
+  .label-pro{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(185,133,255,.10);
+    border:1px solid rgba(185,133,255,.18);
+    color:#efeaff;
+    font-size:12.5px;
+    letter-spacing:.2px;
+    margin-left:2px;
+    user-select:none;
+  }
+  .label-sub{
+    display:block;
+    margin-top:6px;
+    font-size:12px;
+    color:#bfb6ea;
     padding-left:6px;
   }
+
   input[type=text]{
-    flex:1;
+    width:100%;
     background:#2b2250;
     border:1px solid rgba(180,140,255,.35);
     border-radius:12px;
@@ -146,7 +169,7 @@
   /* WALINK - estado bloqueado/edición */
   .walink-wrap{ width:100%; display:flex; flex-direction:column; gap:8px; }
   #walink[readonly]{
-    opacity:.92;
+    opacity:.94;
     cursor:pointer;
     border-color: rgba(180,140,255,.25);
   }
@@ -163,11 +186,58 @@
     box-shadow:none;
   }
 
-  #list{margin-top:14px;}
+  /* Mensaje status */
+  #msg{ margin-top:12px; text-align:center; }
+
+  /* ===== MODAL MENSAJES ===== */
+  .modal{
+    position:fixed;
+    inset:0;
+    z-index:1800;
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    padding:12px;
+    background:rgba(0,0,0,.55);
+    backdrop-filter: blur(6px);
+  }
+  .modal.show{ display:flex; }
+
+  .modal-card{
+    width:100%;
+    max-width:760px;
+    border-radius:20px;
+    background:linear-gradient(var(--card),var(--card)) padding-box,
+               linear-gradient(145deg,var(--edge1),var(--edge2),var(--edge1)) border-box;
+    border:1px solid transparent;
+    box-shadow:0 18px 55px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  .modal-head{
+    padding:14px 14px 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .modal-title{
+    font-weight:800;
+    letter-spacing:.3px;
+  }
+  .modal-body{ padding:12px 14px 14px; }
+  .modal-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+
+  #msgList{ margin-top:6px; }
 
   .msg-card{
-    border:1px solid rgba(180,140,255,.22);
-    background:rgba(18,8,40,.45);
+    border:1px solid rgba(180,140,255,.18);
+    background:rgba(18,8,40,.40);
     border-radius:16px;
     padding:10px;
     margin:10px 0;
@@ -176,23 +246,9 @@
     display:flex;
     gap:8px;
     align-items:center;
-    justify-content:space-between;
     flex-wrap:wrap;
+    justify-content:space-between;
   }
-
-  .msg-badge{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:6px 10px;
-    border-radius:999px;
-    background:rgba(185,133,255,.10);
-    border:1px solid rgba(185,133,255,.20);
-    font-size:12px;
-    color:#efeaff;
-    letter-spacing:.3px;
-  }
-
   .pill{
     display:flex;
     gap:8px;
@@ -203,15 +259,16 @@
     border:1px solid rgba(185,133,255,.22);
     font-size:12.5px;
     color:#efeaff;
+    user-select:none;
   }
   .pill input{ transform:scale(1.05); }
 
-  /* ✅ Caja del mensaje más “angosta” */
   textarea{
     width:100%;
     margin-top:8px;
-    min-height:54px;          /* antes 92 */
-    resize:vertical;          /* si querés: podés agrandarla a mano */
+    min-height:56px;            /* más angosto/compacto */
+    max-height:160px;
+    resize:vertical;
     background:#2b2250;
     border:1px solid rgba(180,140,255,.35);
     border-radius:12px;
@@ -222,16 +279,12 @@
     line-height:1.35;
   }
 
-  .msg-actions{
-    margin-top:8px;
+  .footer-save{
+    margin-top:10px;
     display:flex;
     gap:8px;
-    justify-content:flex-end;
-    flex-wrap:wrap;
   }
-
-  .save-wrap{display:flex;justify-content:center;margin:16px 0 6px}
-  #msg{ margin-top:10px; }
+  .footer-save .btn{ flex:1; height:40px; }
 
   @media(max-width:420px){
     .logo{width:216px;margin:8px auto -38px}
@@ -239,7 +292,10 @@
     .btn{font-size:12.5px}
     .walink-actions{ justify-content:stretch; }
     .walink-actions .btn{ flex:1; }
-    .msg-top{ gap:10px; }
+
+    .modal{ align-items:flex-end; padding:10px; }
+    .modal-head{ padding:12px; }
+    .modal-body{ padding:12px; }
   }
 </style>
 </head>
@@ -277,46 +333,62 @@
 
       <div class="actions-top">
         <button class="btn btn--thin btn--sm" id="btnView">Recargar</button>
-        <button class="btn btn--thin btn--sm" id="btnRot">Resetear rotación</button>
       </div>
 
       <!-- WALINK -->
       <div class="field">
-        <label>📲 WALINK principal</label>
+        <div style="width:100%">
+          <span class="label-pro">📲 Número principal de atención</span>
+          <span class="label-sub">Tocá el campo para editarlo y guardarlo.</span>
 
-        <div class="walink-wrap">
-          <input id="walink" type="text" placeholder="https://wa.me/549XXXXXXXXXX" readonly>
+          <div class="walink-wrap" style="margin-top:8px;">
+            <input id="walink" type="text" placeholder="https://wa.me/549XXXXXXXXXX" readonly>
 
-          <div class="walink-actions" id="walinkActions">
-            <button class="btn btn--thin btn--sm" id="btnSaveWalink">Guardar</button>
-            <button class="btn btn--ghost btn--sm" id="btnCancelWalink">Cancelar</button>
+            <div class="walink-actions" id="walinkActions">
+              <button class="btn btn--thin btn--sm" id="btnSaveWalink">Guardar</button>
+              <button class="btn btn--ghost btn--sm" id="btnCancelWalink">Cancelar</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="actions-bottom">
-        <button class="btn btn--main" id="btnAdd">AGREGAR MENSAJE</button>
-      </div>
-
-      <div id="list"></div>
-
-      <div class="save-wrap" id="saveWrap" style="display:none">
-        <button class="btn btn--thin" id="btnSaveFinal">Guardar</button>
-      </div>
+      <!-- Botón principal: Mensajes -->
+      <button class="btn btn--main" id="btnOpenMessages">MENSAJES</button>
 
       <p id="msg"></p>
     </div>
   </div>
 </div>
 
+<!-- MODAL MENSAJES -->
+<div class="modal" id="messagesModal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="Mensajes de WhatsApp">
+    <div class="modal-head">
+      <div class="modal-title">Mensajes de WhatsApp</div>
+      <button class="btn btn--ghost btn--sm" id="btnCloseMessages">Cerrar</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-actions">
+        <button class="btn btn--thin btn--sm" id="btnAddMsg">Agregar mensaje</button>
+      </div>
+
+      <div id="msgList"></div>
+
+      <div class="footer-save">
+        <button class="btn btn--thin" id="btnSaveAllMsgs">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-/* ✅ TOKEN FIJO (Daiana) */
+/* ✅ TOKEN FIJO */
 const TOKEN = "daiana-2026";
 
 /* ✅ Endpoints con .js */
 const API_ADMIN = `/api/admin.js?token=${encodeURIComponent(TOKEN)}&get=1`;
 const API_POST  = `/api/admin-post.js?token=${encodeURIComponent(TOKEN)}`;
-const API_ROT   = `/api/rotate-reset.js?token=${encodeURIComponent(TOKEN)}`;
 
 /* Fondo */
 const c=document.getElementById("bg"),x=c.getContext("2d");
@@ -387,24 +459,35 @@ window.addEventListener("load",()=>{
 });
 setInterval(()=>{ if(!isSessionValid()) forceLogout(); },15000);
 
-/* Panel */
-const list=$("#list");
-const msg=$("#msg");
-const saveWrap=$("#saveWrap");
-const walinkInput=$("#walink");
-const walinkActions=$("#walinkActions");
-const btnSaveWalink=$("#btnSaveWalink");
-const btnCancelWalink=$("#btnCancelWalink");
+/* UI refs */
+const msgEl = $("#msg");
+const btnView = $("#btnView");
 
-let lastCfgMessages = [];
+/* WALINK */
+const walinkInput   = $("#walink");
+const walinkActions = $("#walinkActions");
+const btnSaveWalink = $("#btnSaveWalink");
+const btnCancelWalink = $("#btnCancelWalink");
 let walinkOriginal = "";
 
+/* Modal mensajes */
+const messagesModal = $("#messagesModal");
+const btnOpenMessages = $("#btnOpenMessages");
+const btnCloseMessages = $("#btnCloseMessages");
+const btnAddMsg = $("#btnAddMsg");
+const btnSaveAllMsgs = $("#btnSaveAllMsgs");
+const msgList = $("#msgList");
+
+/* Estado */
+let lastCfgMessages = [];
+let lastCfgWalink = "";
+
+/* Helpers */
 function show(t,ok=1){
-  msg.textContent=t;
-  msg.style.color = ok ? "#cfe9ff" : "#ffb2b2";
+  msgEl.textContent=t || "";
+  msgEl.style.color = ok ? "var(--ok)" : "var(--bad)";
 }
 
-/* Helper */
 async function fetchJson(url, options){
   const r = await fetch(url, options);
   const text = await r.text();
@@ -412,64 +495,12 @@ async function fetchJson(url, options){
   try { j = JSON.parse(text); } catch {}
   if (!r.ok) {
     const extra = j ? JSON.stringify(j) : text;
-    throw new Error(`HTTP ${r.status} en ${url} :: ${extra}`);
+    throw new Error(`HTTP ${r.status} :: ${extra}`);
   }
   return j ?? {};
 }
 
-function makeMessageCard(m={id:null,title:"",text:"",active:true}){
-  const d=document.createElement("div");
-  d.className="msg-card";
-  d.dataset.id = m.id || "";
-
-  const top=document.createElement("div");
-  top.className="msg-top";
-
-  const badge=document.createElement("div");
-  badge.className="msg-badge";
-  badge.textContent="MENSAJE";
-
-  const pill=document.createElement("label");
-  pill.className="pill";
-  const chk=document.createElement("input");
-  chk.type="checkbox";
-  chk.checked = m.active !== false;
-  const span=document.createElement("span");
-  span.textContent="Activo";
-  pill.append(chk,span);
-
-  const del=document.createElement("button");
-  del.className="btn btn--thin btn--sm";
-  del.textContent="Eliminar";
-  del.onclick=()=>{ d.remove(); saveWrap.style.display="flex"; };
-
-  top.append(badge,pill,del);
-
-  const ta=document.createElement("textarea");
-  ta.placeholder="Ej: Hola, quiero jugar";
-  ta.value=m.text||"";
-
-  [chk, ta].forEach(el=>{
-    el.addEventListener("input", ()=>{ saveWrap.style.display="flex"; });
-    el.addEventListener("change", ()=>{ saveWrap.style.display="flex"; });
-  });
-
-  d.append(top,ta);
-  return d;
-}
-
-function getMessagesFromUI(){
-  const cards=[...list.querySelectorAll(".msg-card")];
-  return cards.map(card=>{
-    const id = card.dataset.id || null;
-    const text  = card.querySelector("textarea")?.value.trim() || "";
-    const active= !!card.querySelector('input[type="checkbox"]')?.checked;
-    if (!text) return null;
-    return { id, title:"", text, active };
-  }).filter(Boolean);
-}
-
-/* ✅ WALINK edición A1 */
+/* WALINK edición A1 */
 function enterWalinkEdit(){
   if (!walinkInput.hasAttribute("readonly")) return;
   walinkOriginal = walinkInput.value;
@@ -477,13 +508,11 @@ function enterWalinkEdit(){
   walinkActions.classList.add("show");
   setTimeout(()=>{ walinkInput.focus(); walinkInput.select(); }, 0);
 }
-
 function exitWalinkEdit(restore=false){
   if (restore) walinkInput.value = walinkOriginal;
-  walinkInput.setAttribute("readonly", "readonly");
+  walinkInput.setAttribute("readonly","readonly");
   walinkActions.classList.remove("show");
 }
-
 walinkInput.addEventListener("click", enterWalinkEdit);
 walinkInput.addEventListener("focus", enterWalinkEdit);
 
@@ -496,48 +525,158 @@ btnCancelWalink.onclick = (e)=>{
 btnSaveWalink.onclick = async (e)=>{
   e.preventDefault();
   const newWalink = (walinkInput.value || "").trim();
-  if (!newWalink) return show("Poné el WALINK principal",0);
+  if (!newWalink) return show("Poné el número principal de atención",0);
 
   try{
-    show("Guardando WALINK...");
+    show("Guardando número...");
     const j = await fetchJson(API_POST,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ action:"set_all", walink: newWalink, messages: Array.isArray(lastCfgMessages) ? lastCfgMessages : [] })
+      body:JSON.stringify({
+        action:"set_all",
+        walink: newWalink,
+        messages: Array.isArray(lastCfgMessages) ? lastCfgMessages : []
+      })
     });
 
-    if(!j.ok) return show(`Error al guardar WALINK`,0);
+    if(!j.ok) return show("Error al guardar el número",0);
 
     exitWalinkEdit(false);
-    show("WALINK actualizado ✅");
+    show("Número actualizado ✅");
     await loadAll();
   }catch(err){
     console.error(err);
-    show(`Error al guardar WALINK: ${err.message}`,0);
+    show(`Error al guardar: ${err.message}`,0);
   }
 };
 
+/* ===== Mensajes (modal) ===== */
+function openMessages(){
+  messagesModal.classList.add("show");
+  messagesModal.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+}
+function closeMessages(){
+  messagesModal.classList.remove("show");
+  messagesModal.setAttribute("aria-hidden","true");
+  document.body.style.overflow="";
+}
+
+btnOpenMessages.onclick = (e)=>{ e.preventDefault(); openMessages(); };
+btnCloseMessages.onclick = (e)=>{ e.preventDefault(); closeMessages(); };
+messagesModal.addEventListener("click",(e)=>{
+  if(e.target === messagesModal) closeMessages();
+});
+window.addEventListener("keydown",(e)=>{
+  if(e.key === "Escape" && messagesModal.classList.contains("show")) closeMessages();
+});
+
+function makeMessageCard(m={id:null,text:"",active:true}){
+  const d=document.createElement("div");
+  d.className="msg-card";
+  d.dataset.id = m.id || "";
+
+  const top=document.createElement("div");
+  top.className="msg-top";
+
+  const pill=document.createElement("label");
+  pill.className="pill";
+  const chk=document.createElement("input");
+  chk.type="checkbox";
+  chk.checked = m.active !== false;
+  const span=document.createElement("span");
+  span.textContent="Activo";
+  pill.append(chk,span);
+
+  const del=document.createElement("button");
+  del.className="btn btn--ghost btn--sm";
+  del.textContent="Eliminar";
+  del.onclick=()=>{ d.remove(); };
+
+  top.append(pill,del);
+
+  const ta=document.createElement("textarea");
+  ta.placeholder="Ej: Hola, quiero un usuario";
+  ta.value=m.text||"";
+
+  d.append(top,ta);
+  return d;
+}
+
+function renderMessages(messages){
+  msgList.innerHTML="";
+  const msgs = Array.isArray(messages) ? messages : [];
+  if(msgs.length === 0){
+    msgList.append(makeMessageCard());
+  }else{
+    msgs.forEach(m=>{
+      msgList.append(makeMessageCard({ id:m.id||null, text:m.text||"", active: m.active !== false }));
+    });
+  }
+}
+
+function getMessagesFromUI(){
+  const cards=[...msgList.querySelectorAll(".msg-card")];
+  return cards.map(card=>{
+    const id = card.dataset.id || null;
+    const text  = card.querySelector("textarea")?.value.trim() || "";
+    const active= !!card.querySelector('input[type="checkbox"]')?.checked;
+    if (!text) return null;
+    return { id, text, active };
+  }).filter(Boolean);
+}
+
+btnAddMsg.onclick = (e)=>{
+  e.preventDefault();
+  msgList.append(makeMessageCard());
+  // scrolleo suave al final
+  setTimeout(()=>{ msgList.lastElementChild?.scrollIntoView({behavior:"smooth",block:"start"}); }, 0);
+};
+
+btnSaveAllMsgs.onclick = async (e)=>{
+  e.preventDefault();
+  const walink = (walinkInput.value || "").trim() || lastCfgWalink || "";
+  const messages = getMessagesFromUI();
+
+  if(!walink) return show("Poné el número principal de atención",0);
+  if(messages.length===0) return show("Agregá al menos 1 mensaje",0);
+
+  try{
+    show("Guardando mensajes...");
+    const j = await fetchJson(API_POST,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ action:"set_all", walink, messages })
+    });
+
+    if(!j.ok) return show("Error al guardar mensajes",0);
+
+    show("Mensajes guardados ✅");
+    closeMessages();
+    await loadAll();
+  }catch(err){
+    console.error(err);
+    show(`Error al guardar: ${err.message}`,0);
+  }
+};
+
+/* ===== Carga inicial ===== */
 async function loadAll(){
   try{
     show("Cargando...");
     const j = await fetchJson(API_ADMIN);
     const cfg = j.cfg || j;
 
-    walinkInput.value = cfg.walink || "";
-    lastCfgMessages = Array.isArray(cfg.messages) ? cfg.messages : [];
+    lastCfgWalink = (cfg.walink || "").toString();
+    walinkInput.value = lastCfgWalink;
 
+    lastCfgMessages = Array.isArray(cfg.messages) ? cfg.messages : [];
+    renderMessages(lastCfgMessages);
+
+    // siempre bloqueado al cargar
     walinkInput.setAttribute("readonly","readonly");
     walinkActions.classList.remove("show");
 
-    list.innerHTML="";
-    const msgs = Array.isArray(cfg.messages) ? cfg.messages : [];
-    if (msgs.length===0){
-      list.append(makeMessageCard());
-    } else {
-      msgs.forEach(m=> list.append(makeMessageCard(m)));
-    }
-
-    saveWrap.style.display="none";
     show("Listo ✅");
   }catch(e){
     console.error(e);
@@ -545,49 +684,8 @@ async function loadAll(){
   }
 }
 
-/* Botones */
-$("#btnView").onclick=()=>loadAll();
-
-$("#btnAdd").onclick=()=>{
-  list.append(makeMessageCard());
-  saveWrap.style.display="flex";
-};
-
-$("#btnRot").onclick=async()=>{
-  try{
-    const j = await fetchJson(API_ROT);
-    show(j.ok ? "Rotación reiniciada ✅" : `Error al reiniciar`, !!j.ok);
-  }catch(e){
-    console.error(e);
-    show(`Error: ${e.message}`,0);
-  }
-};
-
-$("#btnSaveFinal").onclick=async()=>{
-  const walink = (walinkInput.value||"").trim();
-  const messages = getMessagesFromUI();
-
-  if(!walink) return show("Poné el WALINK principal",0);
-  if(messages.length===0) return show("Agregá al menos 1 mensaje",0);
-
-  try{
-    show("Guardando...");
-    const j = await fetchJson(API_POST,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ action:"set_all", walink, messages })
-    });
-
-    if(!j.ok) return show(`Error al guardar`,0);
-
-    saveWrap.style.display="none";
-    show("Guardado ✅");
-    await loadAll();
-  }catch(e){
-    console.error(e);
-    show(`Error al guardar: ${e.message}`,0);
-  }
-};
+/* Botón recargar */
+btnView.onclick=()=>loadAll();
 </script>
 </body>
 </html>
