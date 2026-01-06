@@ -1,10 +1,8 @@
 {
-  "name": "redirect-whatsapp-actualizado",
+  "name": "panel-daiana",
   "version": "1.0.0",
-  "type": "module",
-  "description": "Redirección dinámica con panel de administración",
-  "main": "index.js",
+  "private": true,
   "dependencies": {
-    "@upstash/redis": "latest"
+    "@upstash/redis": "^1.31.6"
   }
 }
