@@ -97,7 +97,7 @@
 
   .actions-top{
     display:grid;
-    grid-template-columns:1fr 1fr 1fr;
+    grid-template-columns:1fr 1fr; /* antes 3 */
     gap:8px;
     margin:8px 0 6px;
   }
@@ -142,6 +142,26 @@
     min-width:220px;
   }
   input::placeholder{color:#9a8ccc}
+
+  /* WALINK - estado bloqueado/edición */
+  .walink-wrap{ width:100%; display:flex; flex-direction:column; gap:8px; }
+  #walink[readonly]{
+    opacity:.92;
+    cursor:pointer;
+    border-color: rgba(180,140,255,.25);
+  }
+  .walink-actions{
+    display:none;
+    gap:8px;
+    justify-content:flex-end;
+    width:100%;
+  }
+  .walink-actions.show{ display:flex; }
+  .btn--ghost{
+    background:transparent;
+    border:1px solid rgba(180,140,255,.28);
+    box-shadow:none;
+  }
 
   #list{margin-top:16px;}
 
@@ -206,6 +226,12 @@
     .logo{width:216px;margin:8px auto -38px}
     .card-inner{padding:14px 10px}
     .btn{font-size:12.5px}
+    .walink-actions{
+      justify-content:stretch;
+    }
+    .walink-actions .btn{
+      flex:1;
+    }
   }
 </style>
 </head>
@@ -245,12 +271,20 @@
       <div class="actions-top">
         <button class="btn btn--thin btn--sm" id="btnView">Recargar</button>
         <button class="btn btn--thin btn--sm" id="btnRot">Resetear rotación</button>
-        <button class="btn btn--thin btn--sm" id="btnReset">Borrar mensajes</button>
       </div>
 
+      <!-- WALINK -->
       <div class="field">
         <label>📲 WALINK principal</label>
-        <input id="walink" type="text" placeholder="https://wa.me/549XXXXXXXXXX">
+
+        <div class="walink-wrap">
+          <input id="walink" type="text" placeholder="https://wa.me/549XXXXXXXXXX" readonly>
+
+          <div class="walink-actions" id="walinkActions">
+            <button class="btn btn--thin btn--sm" id="btnSaveWalink">Guardar</button>
+            <button class="btn btn--ghost btn--sm" id="btnCancelWalink">Cancelar</button>
+          </div>
+        </div>
       </div>
 
       <div class="actions-bottom">
@@ -272,8 +306,8 @@
 /* ✅ TOKEN FIJO (Daiana) */
 const TOKEN = "daiana-2026";
 
-/* ✅ Endpoints con .js (porque /api/admin SIN .js te daba 404) */
-const API_ADMIN = `/api/admin.js?token=${encodeURIComponent(TOKEN)}&get=1`;
+/* ✅ Endpoints con .js */
+const API_ADMIN = `/api/admin.js?token=${encodeURIComponent(TOKEN)}`;
 const API_POST  = `/api/admin-post.js?token=${encodeURIComponent(TOKEN)}`;
 const API_ROT   = `/api/rotate-reset.js?token=${encodeURIComponent(TOKEN)}`;
 
@@ -351,13 +385,19 @@ const list=$("#list");
 const msg=$("#msg");
 const saveWrap=$("#saveWrap");
 const walinkInput=$("#walink");
+const walinkActions=$("#walinkActions");
+const btnSaveWalink=$("#btnSaveWalink");
+const btnCancelWalink=$("#btnCancelWalink");
+
+let lastCfgMessages = [];
+let walinkOriginal = "";
 
 function show(t,ok=1){
   msg.textContent=t;
   msg.style.color = ok ? "#cfe9ff" : "#ffb2b2";
 }
 
-/* Helper: fetch con debug */
+/* Helper */
 async function fetchJson(url, options){
   const r = await fetch(url, options);
   const text = await r.text();
@@ -433,17 +473,72 @@ function getMessagesFromUI(){
   }).filter(Boolean);
 }
 
+/* ✅ WALINK edición A1: un toque */
+function enterWalinkEdit(){
+  if (!walinkInput.hasAttribute("readonly")) return;
+  walinkOriginal = walinkInput.value;
+  walinkInput.removeAttribute("readonly");
+  walinkActions.classList.add("show");
+  // Selecciona para editar rápido
+  setTimeout(()=>{ walinkInput.focus(); walinkInput.select(); }, 0);
+}
+
+function exitWalinkEdit(restore=false){
+  if (restore) walinkInput.value = walinkOriginal;
+  walinkInput.setAttribute("readonly", "readonly");
+  walinkActions.classList.remove("show");
+}
+
+walinkInput.addEventListener("click", enterWalinkEdit);
+walinkInput.addEventListener("focus", enterWalinkEdit);
+
+btnCancelWalink.onclick = (e)=>{
+  e.preventDefault();
+  exitWalinkEdit(true);
+  show("Cambios cancelados");
+};
+
+btnSaveWalink.onclick = async (e)=>{
+  e.preventDefault();
+  const newWalink = (walinkInput.value || "").trim();
+  if (!newWalink) return show("Poné el WALINK principal",0);
+
+  try{
+    show("Guardando WALINK...");
+    // Guardamos SOLO walink, manteniendo mensajes actuales del server (lastCfgMessages)
+    const j = await fetchJson(API_POST,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ action:"set_all", walink: newWalink, messages: Array.isArray(lastCfgMessages) ? lastCfgMessages : [] })
+    });
+
+    if(!j.ok) return show(`Error al guardar WALINK`,0);
+
+    exitWalinkEdit(false);
+    show("WALINK actualizado ✅");
+    // Refresca para confirmar persistencia
+    await loadAll();
+  }catch(err){
+    console.error(err);
+    show(`Error al guardar WALINK: ${err.message}`,0);
+  }
+};
+
 async function loadAll(){
   try{
     show("Cargando...");
     const j = await fetchJson(API_ADMIN);
-
-    // soporta ambos formatos (por si tu api devuelve {cfg:{...}})
     const cfg = j.cfg || j;
 
     walinkInput.value = cfg.walink || "";
-    list.innerHTML="";
+    // Guardamos el snapshot de mensajes del server para el save-only-walink
+    lastCfgMessages = Array.isArray(cfg.messages) ? cfg.messages : [];
 
+    // Siempre deja el walink bloqueado cuando carga
+    walinkInput.setAttribute("readonly","readonly");
+    walinkActions.classList.remove("show");
+
+    list.innerHTML="";
     const msgs = Array.isArray(cfg.messages) ? cfg.messages : [];
     if (msgs.length===0){
       list.append(makeMessageCard());
@@ -467,30 +562,10 @@ $("#btnAdd").onclick=()=>{
   saveWrap.style.display="flex";
 };
 
-$("#btnReset").onclick=async()=>{
-  try{
-    show("Borrando...");
-    const j = await fetchJson(API_POST,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ action:"set_all", walink: walinkInput.value.trim(), messages: [] })
-    });
-    if(!j.ok) return show(`Error al borrar: ${JSON.stringify(j)}`,0);
-
-    list.innerHTML="";
-    list.append(makeMessageCard());
-    saveWrap.style.display="none";
-    show("Mensajes borrados ✅");
-  }catch(e){
-    console.error(e);
-    show(`Error: ${e.message}`,0);
-  }
-};
-
 $("#btnRot").onclick=async()=>{
   try{
     const j = await fetchJson(API_ROT);
-    show(j.ok ? "Rotación reiniciada ✅" : `Error al reiniciar: ${JSON.stringify(j)}`, !!j.ok);
+    show(j.ok ? "Rotación reiniciada ✅" : `Error al reiniciar`, !!j.ok);
   }catch(e){
     console.error(e);
     show(`Error: ${e.message}`,0);
@@ -498,7 +573,7 @@ $("#btnRot").onclick=async()=>{
 };
 
 $("#btnSaveFinal").onclick=async()=>{
-  const walink = walinkInput.value.trim();
+  const walink = (walinkInput.value||"").trim();
   const messages = getMessagesFromUI();
 
   if(!walink) return show("Poné el WALINK principal",0);
@@ -512,7 +587,7 @@ $("#btnSaveFinal").onclick=async()=>{
       body:JSON.stringify({ action:"set_all", walink, messages })
     });
 
-    if(!j.ok) return show(`Error al guardar: ${JSON.stringify(j)}`,0);
+    if(!j.ok) return show(`Error al guardar`,0);
 
     saveWrap.style.display="none";
     show("Guardado ✅");
@@ -522,7 +597,6 @@ $("#btnSaveFinal").onclick=async()=>{
     show(`Error al guardar: ${e.message}`,0);
   }
 };
-
 </script>
 </body>
 </html>
